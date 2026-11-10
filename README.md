@@ -13,6 +13,7 @@ Folder structure in the root of the repository.
    project/
    ├── data/
    │   └── _raw/
+   │
    ├── R/
    ├── results/
    └── docs/
