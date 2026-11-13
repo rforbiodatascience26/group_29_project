@@ -1,0 +1,46 @@
+---
+title: "Loading data"
+format: html
+editor: visual
+---
+
+## Loading data
+
+```{r}
+#| echo: false
+library('tidyverse')
+library('Matrix')
+```
+
+```{r}
+
+# Loading w/out Seurat
+
+setwd("~/") # I've had to set it manually
+
+count_matrix <- readMM('matrix.mtx.gz')
+barcodes <- read.delim('barcodes.tsv.gz', header = FALSE)
+features <- read.delim('features.tsv.gz', header = FALSE)
+```
+
+```{r}
+
+features_id <- features |>
+  select('V2')
+
+t_fea <- t(features_id)
+t_bar <- t(barcodes)
+
+colnames(count_matrix) <- t_bar
+rownames(count_matrix) <- t_fea
+```
+
+Features (at least x per cell/barcode) and counts for features (at least in x cells)
+
+Columns (barcodes) with less than x features (empty beads) or more than x features (doublets)
+
+Cells w/ more than x% of mitochondrial genes (damaged cells)
+
+PC cutoff
+
+Normalize, find variable, scale, PCA
