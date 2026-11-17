@@ -13,17 +13,27 @@ library('Matrix')
 ```
 
 ```{r}
+my_data_folder <- "/net/pupil1/home/people/s263709/projects/group_29_project/data/_raw"
 
-# Loading w/out Seurat
+dest_file <- file.path(my_data_folder, "filtered_feature_bc_matrix.tar.gz")
 
-setwd("~/") # I've had to set it manually
+url <- "https://cf.10xgenomics.com/samples/cell-exp/8.0.0/20k_WholeBlood_Fixation_Leukocyte_Isolation_2donor_aggr/20k_WholeBlood_Fixation_Leukocyte_Isolation_2donor_aggr_count_filtered_feature_bc_matrix.tar.gz"
 
-count_matrix <- readMM('matrix.mtx.gz')
-barcodes <- read.delim('barcodes.tsv.gz', header = FALSE)
-features <- read.delim('features.tsv.gz', header = FALSE)
+download.file(url, destfile = dest_file, mode = "wb")
 ```
 
 ```{r}
+
+# Loading w/out Seurat
+setwd("/net/pupil1/home/people/s263709/projects/group_29_project/data/_raw")
+# R.utils::gunzip("filtered_feature_bc_matrix.tar.gz")
+
+untar("filtered_feature_bc_matrix.tar")
+setwd("/net/pupil1/home/people/s263709/projects/group_29_project/data/_raw/filtered_feature_bc_matrix/")
+count_matrix <- readMM('matrix.mtx.gz')
+barcodes <- read.delim('barcodes.tsv.gz', header = FALSE)
+features <- read.delim('features.tsv.gz', header = FALSE)
+
 
 features_id <- features |>
   select('V2')
