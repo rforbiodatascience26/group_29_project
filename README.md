@@ -3,9 +3,8 @@ Project repository for Group 29
 
 ## Dataset
 
-This project uses the Kidney and Lung DTCs Matched PBMC MultiPro® Human Discovery Panel Dataset 
-(https://www.10xgenomics.com/datasets/160k_DTC_Matched_PBMC_MultiPro_Human_Discovery_Panel). 
-(Specifically the Gene Expression - Raw feature / cell matrix HDF5 (per-sample) file)
+This project uses the Aggregate of Human Whole Leukocytes Isolated from Fixed Whole Blood of a Diseased Donor and a Healthy Donor (Next GEM), specifically the Feature / cell matrix (filtered) of 119 MB (https://www.10xgenomics.com/datasets/20k_WholeBlood_Fixation_Leukocyte_Isolation_2donor_aggr).
+
 The dataset is **not included in this repository**.
 
 ## Setup
