@@ -5,7 +5,6 @@ Project repository for Group 29
 
 This project uses the dataset https://hbiostat.org/data/repo/stressecho and https://hbiostat.org/data/repo/cstressecho.
 https://hbiostat.org/data/repo/stressEcho.csv
-https://hbiostat.org/data/repo/dmd.csv
 
 The dataset is **not included in this repository**.
 
