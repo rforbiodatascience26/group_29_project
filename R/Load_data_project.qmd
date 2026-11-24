@@ -16,7 +16,7 @@ library('Matrix')
 
 # Loading w/out Seurat
 
-setwd("~/") # I've had to set it manually
+setwd("/net/pupil1/home/people/s263486/projects/group_29_project/data/_raw/filtered_feature_bc_matrix/")
 
 count_matrix <- readMM('matrix.mtx.gz')
 barcodes <- read.delim('barcodes.tsv.gz', header = FALSE)
