@@ -10,6 +10,15 @@ editor: visual
 #| echo: false
 library(readr)
 library(tidyverse)
+
+
+
+my_data_folder <- "~/"
+dest_file <- file.path(my_data_folder, "stressEcho.csv")
+
+url <- "https://hbiostat.org/data/repo/stressEcho.csv"
+
+download.file(url, destfile = dest_file, mode = "wb")
 stressEcho <- read_csv("~/stressEcho.csv", na = c("N/A"))
 View(stressEcho)
 ```
