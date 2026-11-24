@@ -3,7 +3,7 @@ Project repository for Group 29
 
 ## Dataset
 
-This project uses the Aggregate of Human Whole Leukocytes Isolated from Fixed Whole Blood of a Diseased Donor and a Healthy Donor (Next GEM), specifically the Feature / cell matrix (filtered) of 119 MB (https://www.10xgenomics.com/datasets/20k_WholeBlood_Fixation_Leukocyte_Isolation_2donor_aggr).
+This project uses the dataset https://hbiostat.org/data/repo/stressecho and https://hbiostat.org/data/repo/cstressecho
 
 The dataset is **not included in this repository**.
 
