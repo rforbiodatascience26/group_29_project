@@ -1,0 +1,80 @@
+---
+title: "loading again"
+format: html
+editor: visual
+---
+
+## Loading Data
+
+```{r}
+#| echo: false
+library(readr)
+library(tidyverse)
+stressEcho <- read_csv("~/stressEcho.csv", na = c("N/A"))
+View(stressEcho)
+```
+
+```{r}
+stressEcho <- stressEcho |>
+  select(-...1) |>
+  rename(
+    'BasalHeartRate(bpm)' = 'bhr',
+    'BasalBloodPressure(mmHg)' = 'basebp',
+    'BasalDoubleProduct' = 'basedp',
+    'PeakHeartRate(mmHg)' = 'pkhr',
+    'SystolicBloodPressure(mmHg)' = 'sbp',
+    'SysPeakDoubleProduct' = 'dp',
+    'DobutamineDose(mg)' = 'dose',
+    'MaxHeartRate(bpm)' = 'maxhr',
+    'MaxPredictedHeartRate(percent)' = 'pctMphr',
+    'MaxBloodPressure(mmHg)' = 'mbp',
+    MaxHeartRateDoseDoubleProduct = 'dpmaxdo',
+    'DobutamineDoseAtMax(mg)' = 'dobdose',
+    'CardiacEjectionFraction(percent)' = 'baseEF',
+    'DobutamineEjectionFraction(percent)' = 'dobEF',
+    WallMotionAbnormality = 'restwma',
+    PositiveStress = 'posSE',
+    RecentMyocardialInfarction ='newMI',
+    RecentAngioplasty = 'newPTCA',
+    RecentBypassSurgery = 'newCABG',
+    HypertensionHistory = 'hxofHT',
+    DiabetesHistory = 'hxofDM',
+    SmokingHistory = 'hxofCig',
+    MyocardialInfarctionHistory = 'hxofMI',
+    AngioplastyHistory = 'hxofPTCA',
+    BypassSurgeryHistory = 'hxofCABG',
+    RecentEvent ='any.event',
+    ECGDiagnosis = 'ecg'
+    ) |>
+  mutate(chestpain = case_when(chestpain == 0 ~ 'yes',
+                             chestpain == 1 ~ 'no'),
+         WallMotionAbnormality = case_when(WallMotionAbnormality == 0 ~ 'yes',
+                                           WallMotionAbnormality == 1 ~ 'no'),
+         PositiveStress = case_when(PositiveStress == 0 ~ 'yes',
+                                    PositiveStress == 1 ~ 'no'),
+         RecentMyocardialInfarction = case_when(RecentMyocardialInfarction == 0 ~ 'yes',
+                                                RecentMyocardialInfarction == 1 ~ 'no'),
+         RecentAngioplasty = case_when(RecentAngioplasty == 0 ~ 'yes',
+                                       RecentAngioplasty == 1 ~ 'no'),
+         RecentBypassSurgery = case_when(RecentBypassSurgery == 0 ~ 'yes',
+                                         RecentBypassSurgery == 1 ~ 'no'),
+         death = case_when(death == 0 ~ 'yes',
+                           death == 1 ~ 'no'),
+         HypertensionHistory = case_when(HypertensionHistory == 0 ~ 'yes',
+                                         HypertensionHistory == 1 ~ 'no'),
+         DiabetesHistory = case_when(DiabetesHistory == 0 ~ 'yes',
+                                     DiabetesHistory == 1 ~ 'no'),
+         MyocardialInfarctionHistory = case_when(MyocardialInfarctionHistory == 0 ~ 'yes',
+                                                 MyocardialInfarctionHistory == 1 ~ 'no'),
+         AngioplastyHistory = case_when(AngioplastyHistory == 0 ~ 'yes',
+                                        AngioplastyHistory == 1 ~ 'no'),
+         BypassSurgeryHistory = case_when(BypassSurgeryHistory == 0 ~ 'yes',
+                                          BypassSurgeryHistory == 1 ~ 'no'),
+         RecentEvent = case_when(RecentEvent == 0 ~ 'yes',
+                                 RecentEvent == 1 ~ 'no'),
+         )
+```
+
+```{r}
+view(stressEcho)
+```
