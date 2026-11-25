@@ -1,0 +1,82 @@
+---
+title: "1_medical_story_related_to_events"
+author: "Jose Antonio Muriel Muriel"
+format: html
+editor: visual
+---
+
+## Is the medical story related to the events?
+
+### Introduction
+
+Stress echocardiography is used to detect coronary artery disease and to estimate which patients are at risk of future cardiac problems. In the UCLA dataset used here (Garfinkel et al., 1999), 558 patients had a dobutamine stress echocardiogram and were followed for one year. During follow-up we recorded whether each patient had a new heart attack, an angioplasty, bypass surgery or died of cardiac causes. We combine these into a single outcome, "any event".
+
+Before the test, each patient"s medical history was recorded: **hypertension**, **diabetes**, **smoking**, **prior heart attack**, **prior angioplasty** and **prior bypass surgery**. Established heart disease and cardiovascular risk factors are plausibly linked to more future events.
+
+So, firstly, it is sensible to ask oneself, is a patient"s prior history associated with having a cardiac event within one year of the stress test?
+
+We expect a higher event rate in patients with a history of given variable. We first compare event rates for each history factor, then summarise the history in a burden score, and last use logistic regression to check whether the pattern holds after accounting for age and gender. The data are observational, so we can describe associations but not causes.
+
+### Data preparation
+
+Despite the data has been already cleaned up, it is sensible to simplify the data set to the variables which are planned to be used.
+
+```{r}
+#selecting the significative columns for analysis
+medical_h_data <- stressEcho |> 
+  select(RecentEvent, RecentMyocardialInfarction, RecentAngioplasty, RecentBypassSurgery, death, HypertensionHistory, DiabetesHistory, SmokingHistory, MyocardialInfarctionHistory, AngioplastyHistory, BypassSurgeryHistory, age, gender)
+
+head(medical_h_data)
+```
+
+Also, burden score variable is being created. It will consist on a score given to each patient depending on the presence/absence of the proposed events on their story (Scores go from 0 to 5).
+
+```{r}
+#convert yes/no to 0/1 for summing up the number of patients with certain history
+medical_h_data <- medical_h_data |> 
+  mutate(
+      HypertensionHistory = case_when(HypertensionHistory == "yes" ~ 0,
+                                      HypertensionHistory == "no" ~ 1),
+      DiabetesHistory = case_when(DiabetesHistory == "yes" ~ 0,
+                                  DiabetesHistory == "no" ~ 1),
+      MyocardialInfarctionHistory = case_when(MyocardialInfarctionHistory == "yes" ~ 0,
+                                              MyocardialInfarctionHistory == "no" ~ 1),
+      AngioplastyHistory = case_when(AngioplastyHistory == "yes" ~ 0,
+                                     AngioplastyHistory == "no" ~ 1),
+      BypassSurgeryHistory = case_when(BypassSurgeryHistory == "yes" ~ 0,
+                                       BypassSurgeryHistory == "no" ~ 1),
+    HistoryBurden = HypertensionHistory + DiabetesHistory + AngioplastyHistory + BypassSurgeryHistory + MyocardialInfarctionHistory
+  )
+
+head(medical_h_data)
+```
+
+### Analysis
+
+```{r}
+medical_h_data |>
+  select(
+    c(HypertensionHistory, DiabetesHistory, AngioplastyHistory, BypassSurgeryHistory, MyocardialInfarctionHistory, RecentEvent)
+  ) |> 
+  pivot_longer(
+    cols = c(HypertensionHistory, DiabetesHistory, AngioplastyHistory, BypassSurgeryHistory, MyocardialInfarctionHistory),
+    names_to = "variable",
+    values_to = "level"
+  ) |> 
+  group_by(variable, level) |> 
+  summarise(
+    n = n(), 
+    events = sum(RecentEvent == "yes")
+  ) |> 
+  mutate(
+    event_rate = (events/n)*100, 
+    level = case_when(
+      level == 0 ~ "HAS", 
+      level == 1 ~ "DOESN'T HAVE"
+    )
+  )
+```
+
+```{r}
+ggplot(medical_h_data, aes())
+```
