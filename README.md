@@ -3,8 +3,10 @@ Project repository for Group 29
 
 ## Dataset
 
-This project uses the dataset https://hbiostat.org/data/repo/stressecho and https://hbiostat.org/data/repo/cstressecho.
-https://hbiostat.org/data/repo/stressEcho.csv
+This project uses the data set used in the paper: 
+_Garfinkel, Alan, et. al. "Prognostic Value of Dobutamine Stress Echocardiography in Predicting Cardiac Events in Patients With Known or Suspected Coronary Artery Disease." Journal of the American College of Cardiology 33.3 (1999) 708-16._
+
+It can be downloaded directly clicking [here](https://hbiostat.org/data/repo/stressEcho.csv) and all the information related to it can be found [here](https://hbiostat.org/data/repo/stressecho and https://hbiostat.org/data/repo/cstressecho).
 
 The dataset is **not included in this repository**.
 
