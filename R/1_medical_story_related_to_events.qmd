@@ -5,9 +5,9 @@ format: html
 editor: visual
 ---
 
-## Is the medical story related to the events?
+## 1. Is medical story related to cardiac events events?
 
-### Introduction
+### 1.1 Introduction
 
 Stress echocardiography is used to detect coronary artery disease and to estimate which patients are at risk of future cardiac problems. In the UCLA dataset used here (Garfinkel et al., 1999), 558 patients had a dobutamine stress echocardiogram and were followed for one year. During follow-up we recorded whether each patient had a new heart attack, an angioplasty, bypass surgery or died of cardiac causes. We combine these into a single outcome, "any event".
 
@@ -17,66 +17,134 @@ So, firstly, it is sensible to ask oneself, is a patient"s prior history associa
 
 We expect a higher event rate in patients with a history of given variable. We first compare event rates for each history factor, then summarise the history in a burden score, and last use logistic regression to check whether the pattern holds after accounting for age and gender. The data are observational, so we can describe associations but not causes.
 
-### Data preparation
+### 1.2 Data preparation
 
 Despite the data has been already cleaned up, it is sensible to simplify the data set to the variables which are planned to be used.
 
 ```{r}
 #selecting the significative columns for analysis
 medical_h_data <- stressEcho |> 
-  select(RecentEvent, RecentMyocardialInfarction, RecentAngioplasty, RecentBypassSurgery, death, HypertensionHistory, DiabetesHistory, SmokingHistory, MyocardialInfarctionHistory, AngioplastyHistory, BypassSurgeryHistory, age, gender)
+  select(AnyEvent, RecentMyocardialInfarction, RecentAngioplasty, RecentBypassSurgery, death, HypertensionHistory, DiabetesHistory, SmokingHistory, MyocardialInfarctionHistory, AngioplastyHistory, BypassSurgeryHistory, age, gender)
 
 head(medical_h_data)
 ```
 
-Also, burden score variable is being created. It will consist on a score given to each patient depending on the presence/absence of the proposed events on their story (Scores go from 0 to 5).
+Also, burden score variable is being created. It will consist on a score given to each patient depending on the presence/absence of the proposed events on their story (Scores go from 0 to 5). Smoking history is ignored as it has 3 possible values.
 
 ```{r}
-#convert yes/no to 0/1 for summing up the number of patients with certain history
-medical_h_data <- medical_h_data |> 
+#convert yes/no to 1/0 for summing up the number of patients with certain history
+medical_h_data <- medical_h_data |>
   mutate(
-      HypertensionHistory = case_when(HypertensionHistory == "yes" ~ 0,
-                                      HypertensionHistory == "no" ~ 1),
-      DiabetesHistory = case_when(DiabetesHistory == "yes" ~ 0,
-                                  DiabetesHistory == "no" ~ 1),
-      MyocardialInfarctionHistory = case_when(MyocardialInfarctionHistory == "yes" ~ 0,
-                                              MyocardialInfarctionHistory == "no" ~ 1),
-      AngioplastyHistory = case_when(AngioplastyHistory == "yes" ~ 0,
-                                     AngioplastyHistory == "no" ~ 1),
-      BypassSurgeryHistory = case_when(BypassSurgeryHistory == "yes" ~ 0,
-                                       BypassSurgeryHistory == "no" ~ 1),
+      HypertensionHistory = case_when(HypertensionHistory == "yes" ~ 1,
+                                      HypertensionHistory == "no" ~ 0),
+      DiabetesHistory = case_when(DiabetesHistory == "yes" ~ 1,
+                                  DiabetesHistory == "no" ~ 0),
+      MyocardialInfarctionHistory = case_when(MyocardialInfarctionHistory == "yes" ~ 1,
+                                              MyocardialInfarctionHistory == "no" ~ 0),
+      AngioplastyHistory = case_when(AngioplastyHistory == "yes" ~ 1,
+                                     AngioplastyHistory == "no" ~ 0),
+      BypassSurgeryHistory = case_when(BypassSurgeryHistory == "yes" ~ 1,
+                                       BypassSurgeryHistory == "no" ~ 0),
+      AnyEvent = case_when(AnyEvent == "yes" ~ 1,
+                                       AnyEvent == "no" ~ 0),
     HistoryBurden = HypertensionHistory + DiabetesHistory + AngioplastyHistory + BypassSurgeryHistory + MyocardialInfarctionHistory
   )
 
 head(medical_h_data)
 ```
 
-### Analysis
+### 1.3 Analysis
+
+#### 1.3.1 Does the presence of the different histories affect the number of events in patients?
+
+In the following code, only the essential columns are chosen, data is pivoted longer for facilitating the summary of the whole data set. Two new variables are added to the data set: `n`, being the total number of occurrences for each history condition and presence (`with`) or absence (`without`) and also the `event_rate` being the percentage of the patients with certain condition to have had a cardiac event.
 
 ```{r}
-medical_h_data |>
+medical_h_long_1 <- medical_h_data |>
   select(
-    c(HypertensionHistory, DiabetesHistory, AngioplastyHistory, BypassSurgeryHistory, MyocardialInfarctionHistory, RecentEvent)
+    c(HypertensionHistory, DiabetesHistory, AngioplastyHistory, BypassSurgeryHistory, MyocardialInfarctionHistory, AnyEvent)
   ) |> 
   pivot_longer(
     cols = c(HypertensionHistory, DiabetesHistory, AngioplastyHistory, BypassSurgeryHistory, MyocardialInfarctionHistory),
-    names_to = "variable",
-    values_to = "level"
+    names_to = "History",
+    values_to = "Levels"
   ) |> 
-  group_by(variable, level) |> 
+  group_by(History, Levels) |> 
   summarise(
-    n = n(), 
-    events = sum(RecentEvent == "yes")
+    n=n(),
+    events = sum(AnyEvent)
   ) |> 
+  ungroup() |> 
   mutate(
-    event_rate = (events/n)*100, 
-    level = case_when(
-      level == 0 ~ "HAS", 
-      level == 1 ~ "DOESN'T HAVE"
+    event_rate = (events/n)*100,
+    Levels = case_when(
+      Levels == 0 ~ "without", 
+      Levels == 1 ~ "with"
     )
   )
+
+view(medical_h_long)
 ```
 
 ```{r}
-ggplot(medical_h_data, aes())
+overall <- medical_h_data |> 
+  summarise(
+    mean(AnyEvent) * 100
+  )
+
+ggplot(data=medical_h_long, aes(x = History, y = event_rate, fill = Levels)) +
+  geom_col(position = "dodge") +
+  geom_hline(yintercept = as.numeric(overall), linetype = "dashed")
+  
+```
+
+#### 1.3.2 Does more history burden increase the probability of an event occurring?
+
+```{r}
+medical_h_long_2 <- medical_h_data |>
+  select(
+    c(HistoryBurden, HypertensionHistory, DiabetesHistory, AngioplastyHistory, BypassSurgeryHistory, MyocardialInfarctionHistory, AnyEvent)
+  ) |> 
+  mutate(
+    HistoryBurden = ifelse(HistoryBurden >= 3,
+                           "3+",
+                           as.character(HistoryBurden))
+  ) |> 
+  group_by(HistoryBurden) |> 
+  summarise(
+    n=n(),
+    events = sum(AnyEvent)
+  ) |> 
+  ungroup() |> 
+  mutate(
+    event_rate = (events/n)*100,
+  )
+
+view(medical_h_long_2)
+```
+
+```{r}
+overall <- medical_h_data |> 
+  summarise(
+    mean(AnyEvent) * 100
+  )
+
+ggplot(data=medical_h_long_2, aes(x = HistoryBurden, y = event_rate)) +
+  geom_col(position = "dodge") +
+  geom_hline(yintercept = as.numeric(overall), linetype = "dashed")
+```
+
+#### 1.3.3 Which variable has more effect on the occurrence of any cardiac event?
+
+```{r}
+library(broom)
+
+model <- medical_h_data |> 
+  glm(formula = AnyEvent ~ age + gender + HypertensionHistory + DiabetesHistory + AngioplastyHistory + BypassSurgeryHistory + MyocardialInfarctionHistory,
+      family = binomial, 
+      data=_)
+
+model |>
+  tidy(conf.int = TRUE, 
+       exponentiate = TRUE)
 ```
