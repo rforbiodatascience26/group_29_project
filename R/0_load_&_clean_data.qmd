@@ -1,0 +1,92 @@
+---
+title: "0_load_&_clean_data"
+author: "Sara Townsend Escalante"
+format: html
+editor: visual
+---
+
+## Loading data
+
+```{r}
+#| echo: false
+library(readr)
+library(tidyverse)
+
+my_data_folder <- "~/"
+dest_file <- file.path(my_data_folder, "stressEcho.csv")
+
+url <- "https://hbiostat.org/data/repo/stressEcho.csv"
+
+download.file(url, destfile = dest_file, mode = "wb")
+stressEcho <- read_csv("~/stressEcho.csv", na = c("N/A"))
+View(stressEcho)
+```
+
+## Preparing the data
+
+The data is renamed for easiest identification of the variables. Also, binary events (0/1) are recoded to no/yes respectively following the description page which states - "Note that several of the original variables have been renamed and recoded for the S datasets. Event variables that originally were coded `0=yes 1=no` have been recoded `0=no 1=yes.` `equivecg` and `posecg` are combined into a new variable `ecg`. The original `hxofcig` variable had values `0`, `.5`, `1` assumed to represent heavy, moderate, and none. `%mphr(b)` has been renamed `pctMphr`." "
+
+```{r}
+stressEcho <- stressEcho |>
+  select(-...1) |>
+  rename(
+    "BasalHeartRate(bpm)" = "bhr",
+    "BasalBloodPressure(mmHg)" = "basebp",
+    "BasalDoubleProduct" = "basedp",
+    "PeakHeartRate(mmHg)" = "pkhr",
+    "SystolicBloodPressure(mmHg)" = "sbp",
+    "SysPeakDoubleProduct" = "dp",
+    "DobutamineDose(mg)" = "dose",
+    "MaxHeartRate(bpm)" = "maxhr",
+    "MaxPredictedHeartRate(percent)" = "pctMphr",
+    "MaxBloodPressure(mmHg)" = "mbp",
+    MaxHeartRateDoseDoubleProduct = "dpmaxdo",
+    "DobutamineDoseAtMax(mg)" = "dobdose",
+    "CardiacEjectionFraction(percent)" = "baseEF",
+    "DobutamineEjectionFraction(percent)" = "dobEF",
+    WallMotionAbnormality = "restwma",
+    PositiveStress = "posSE",
+    RecentMyocardialInfarction ="newMI",
+    RecentAngioplasty = "newPTCA",
+    RecentBypassSurgery = "newCABG",
+    HypertensionHistory = "hxofHT",
+    DiabetesHistory = "hxofDM",
+    SmokingHistory = "hxofCig",
+    MyocardialInfarctionHistory = "hxofMI",
+    AngioplastyHistory = "hxofPTCA",
+    BypassSurgeryHistory = "hxofCABG",
+    AnyEvent ="any.event",
+    ECGDiagnosis = "ecg"
+    ) |>
+  mutate(chestpain = case_when(chestpain == 0 ~ "no",
+                             chestpain == 1 ~ "yes"),
+         WallMotionAbnormality = case_when(WallMotionAbnormality == 0 ~ "no",
+                                           WallMotionAbnormality == 1 ~ "yes"),
+         PositiveStress = case_when(PositiveStress == 0 ~ "no",
+                                    PositiveStress == 1 ~ "yes"),
+         RecentMyocardialInfarction = case_when(RecentMyocardialInfarction == 0 ~ "no",
+                                                RecentMyocardialInfarction == 1 ~ "yes"),
+         RecentAngioplasty = case_when(RecentAngioplasty == 0 ~ "no",
+                                       RecentAngioplasty == 1 ~ "yes"),
+         RecentBypassSurgery = case_when(RecentBypassSurgery == 0 ~ "no",
+                                         RecentBypassSurgery == 1 ~ "yes"),
+         death = case_when(death == 0 ~ "no",
+                           death == 1 ~ "yes"),
+         HypertensionHistory = case_when(HypertensionHistory == 0 ~ "no",
+                                         HypertensionHistory == 1 ~ "yes"),
+         DiabetesHistory = case_when(DiabetesHistory == 0 ~ "no",
+                                     DiabetesHistory == 1 ~ "yes"),
+         MyocardialInfarctionHistory = case_when(MyocardialInfarctionHistory == 0 ~ "no",
+                                                 MyocardialInfarctionHistory == 1 ~ "yes"),
+         AngioplastyHistory = case_when(AngioplastyHistory == 0 ~ "no",
+                                        AngioplastyHistory == 1 ~ "yes"),
+         BypassSurgeryHistory = case_when(BypassSurgeryHistory == 0 ~ "no",
+                                          BypassSurgeryHistory == 1 ~ "yes"),
+         AnyEvent = case_when(AnyEvent == 0 ~ "no",
+                                 AnyEvent == 1 ~ "yes"),
+         )
+```
+
+```{r}
+view(stressEcho)
+```
