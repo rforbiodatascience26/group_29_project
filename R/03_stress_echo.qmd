@@ -1,0 +1,34 @@
+---
+title: "03_stress_echo"
+author: "Vera Vecherskaia"
+format: html
+editor: visual
+---
+
+How well does the stress echo identify who will have an event?
+
+First, we define the variable we are trying to explain (AnyEvent) and the variables of the stress echo test that may or may now have predictive power, and make a table with them
+
+```{r}
+library(dplyr)
+new <- subset(stressEcho, select = c(AnyEvent, PositiveStress))
+new
+```
+
+Define the tests (posSE, abnormal ecg, restwma, chestpain) and the outcome (any_event). Plan a 2×2 table for each. Compute sensitivity, specificity, positive and negative predictive value by hand with count() and summarise(). Tidy into one table and export it.
+
+```{r}
+
+```
+
+Plot: one dot plot comparing the tests on those four measures. Check whether the test adds information beyond history: event rate by posSE within burden groups, or a logistic model with both. Slide 5, half of slide 8, and prepare to explain what predictive value means when the event rate is 16%.
+
+Plotting
+
+```{r}
+
+```
+
+```{r}
+
+```
