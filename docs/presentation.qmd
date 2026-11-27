@@ -1,0 +1,105 @@
+---
+title: "Factors associated with cardiac events after dobutamine stress echocardiography"
+subtitle: "R for Biodata Science"
+author:
+  - name: "Daniel 'Cifu' Garcia"
+  - name: "Eliza"
+  - name: "Sara Tomiseno Escalante"
+  - name: "Jose Antonio Muriel Muriel"
+  - name: "Vera"
+format:
+  revealjs:
+    theme: [default, presentation_theme.scss]
+    slide-number: true
+    smaller: true
+editor: visual
+incremental: true
+---
+
+## Introduction
+
+::: incremental
+-   Prediction of the probabilities of a cardiac event to occurr is essential since the corresponding follow-ups can be done to the most vulnerable groups
+-   Question: Is medical story related to cardiac events events?
+-   [Question C]
+-   [Question D]
+-   [Question E]
+:::
+
+## Materials and methods: dataset
+
+::: incremental
+-   Obtained from a UCLA study on whether dobutamine stress testing can help
+    predict cardiac events
+-   31 variables measured in 558 patients
+:::
+## Materials and methods: dataset
+
+maybe adding here an image of the dataset and explain the variables is interesting
+
+## Materials and methods: data wrangling
+
+```{.r code-line-numbers="|2|3-5|6-11"}
+stressEcho <- stressEcho |>
+  select(-...1) |>
+  rename(
+    "BasalHeartRate(bpm)" = "bhr"
+  ) |>
+  mutate(
+    chestpain = case_when(
+      chestpain == 0 ~ "no",
+      chestpain == 1 ~ "yes"
+    )
+  )
+```
+
+[Workflow in one sentence: load, clean, augment, analyse]
+
+## [Finding: medical history and event rates]
+
+[Insert Figure 1]
+
+<!-- ![](../results/05_history_rates.png){height="450px" fig-align="center"} -->
+
+[One sentence: unadjusted result]
+
+## [Finding: association after adjustment]
+
+[Insert forest plot]
+
+<!-- ![](../results/05_odds_ratios.png){height="420px" fig-align="center"} -->
+
+[Adjusted result, burden score result and main caveat]
+
+## [Person C: stress echo finding]
+
+[Figure]
+
+[One result sentence]
+
+## [Person D: dobutamine finding]
+
+[Figure]
+
+[One result sentence]
+
+## [Person D: dobutamine comparison]
+
+[Figure]
+
+[One result sentence]
+
+## [Person E: age, sex and other factors]
+
+[Figure]
+
+[One result sentence]
+
+## Discussion and conclusion
+
+::: incremental
+-   [Main answer across the four questions]
+-   [Limitations: observational data, number of events]
+-   [Data quality issues and how they were handled]
+-   [Take-home message]
+:::
