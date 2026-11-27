@@ -5,25 +5,47 @@ format: html
 editor: visual
 ---
 
-How well does the stress echo identify who will have an event?
+```{r}
+library(dplyr)
+library(ggplot2)
+library(PNWColors)
+```
+
+**How well does the stress echo identify who will have an event?**
+
+The data includes information about patients undergoing a stress echocardiogram (stress echo) - an ultrasound test that shows how well your heart muscle and valves work when your heart is beating faster. A positive stress echo (PositiveStress = "yes") means the test showed abnormal heart muscle movement ("flaws"), and it is a bad medical finding.
+
+We want to test the hypothesis that a stress echo response correlates with event outcome.
 
 First, we define the variable we are trying to explain (AnyEvent) and the variables of the stress echo test that may or may now have predictive power, and make a table with them
 
 ```{r}
-library(dplyr)
-new <- subset(stressEcho, select = c(AnyEvent, PositiveStress))
+new <- subset(stressEcho, select = c(AnyEvent, PositiveStress, ECGDiagnosis, WallMotionAbnormality, chestpain))
 new
 ```
 
-Define the tests (posSE, abnormal ecg, restwma, chestpain) and the outcome (any_event). Plan a 2×2 table for each. Compute sensitivity, specificity, positive and negative predictive value by hand with count() and summarise(). Tidy into one table and export it.
+Define the tests (posSE, abnormal ecg, restwma, chestpain) and the outcome (any_event).
 
 ```{r}
-
+new <- new %>%
+  mutate(
+    any_event = if_else(tolower(AnyEvent) == "yes", 1, 0),
+    posSE     = if_else(tolower(PositiveStress) == "yes", 1, 0)
+  )
 ```
 
 Plot: one dot plot comparing the tests on those four measures. Check whether the test adds information beyond history: event rate by posSE within burden groups, or a logistic model with both. Slide 5, half of slide 8, and prepare to explain what predictive value means when the event rate is 16%.
 
-Plotting
+```{r}
+# Logistic regression
+mod_logit <- glm(any_event ~ posSE, data = new, family = binomial)
+summary(mod_logit)
+
+# Convert log-odds to Odds Ratios (easier to interpret on slides)
+exp(coef(mod_logit))
+```
+
+**Plotting**
 
 ```{r}
 
