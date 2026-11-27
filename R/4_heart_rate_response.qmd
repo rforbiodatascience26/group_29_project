@@ -107,3 +107,16 @@ broom::tidy(model_hr, conf.int = TRUE)
 ```
 
 5. Target heart rate vs event rate
+
+I use a 85% threshold, because is the typical criteria in this kind of studies.
+
+```{r}
+new_stressEcho <- stressEcho |> 
+  mutate(indicates = case_when(pctMphr >= 85 ~ 'Reached',
+                             pctMphr < 85 ~ 'Not reached'))
+
+event_group <- new_stressEcho |> 
+  group_by(indicates) |> 
+  summarise(n = n())  
+```
+
