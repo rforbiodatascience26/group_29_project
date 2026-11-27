@@ -27,17 +27,83 @@ ggplot((data = stressEcho),
 2. Summaries by gender, diabetes, hypertension
 
 ```{r}
+title: "4_heart_rate_response"
+format: html
+---
+```
 
-stressEcho |> 
+
+We load the necessary libraries
+
+```{r}
+library(tidyverse)
+library(ggplot2)
+library(here)
+
+stressEcho <- read_csv(here("data", "_raw", "stressEcho.csv"), na = c("N/A"))
+
+head(stressEcho)
+```
+
+1. Prototype: maxhr vs age (+ line 220 - age)
+
+```{r}
+ggplot((data = stressEcho),
+  mapping = aes(x = age, y = maxhr))+
+  geom_abline(slope = -1, intercept = 220)+
+  geom_point()
+```
+
+2. Summaries by gender, diabetes, hypertension
+
+```{r}
+summary_gender <- stressEcho |> 
   group_by(gender) |> 
   summarise(n = n(),
             mean_maxhr = mean(maxhr, na.rm = TRUE),
             sd_maxhr = sd(maxhr, na.rm = TRUE),
             mean_pctMphr = mean(pctMphr, na.rm = TRUE),
             sd_Mphr = sd(pctMphr, na.rm = TRUE))
-           
+
+summary_diabetes <- stressEcho |> 
+  group_by(hxofDM) |> 
+  summarise(n = n(),
+            mean_maxhr = mean(maxhr, na.rm = TRUE),
+            sd_maxhr = sd(maxhr, na.rm = TRUE),
+            mean_pctMphr = mean(pctMphr, na.rm = TRUE),
+            sd_Mphr = sd(pctMphr, na.rm = TRUE))
+
+
+summary_hypertension <-stressEcho |> 
+  group_by(hxofHT) |> 
+  summarise(n = n(),
+            mean_maxhr = mean(maxhr, na.rm = TRUE),
+            sd_maxhr = sd(maxhr, na.rm = TRUE),
+            mean_pctMphr = mean(pctMphr, na.rm = TRUE),
+            sd_Mphr = sd(pctMphr, na.rm = TRUE))       
+
+summary_gender
+summary_diabetes
+summary_hypertension
 ```
 
 3. Plot: maxhr vs age by gender, fitted lines
+
+```{r}
+ggplot(data = stressEcho,
+       aes(x = age, y = maxhr, colour = gender))+
+  geom_smooth(method = 'lm', se = FALSE)+
+  geom_point()
+
+
+```
+
 4. Linear regression: maxhr ~ age + gender + hxofDM
+
+```{r}
+model_hr <- lm(maxhr ~ age + gender + hxofDM, data = stressEcho)
+summary(model_hr)
+broom::tidy(model_hr, conf.int = TRUE)
+```
+
 5. Target heart rate vs event rate
