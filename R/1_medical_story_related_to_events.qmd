@@ -5,6 +5,11 @@ format: html
 editor: visual
 ---
 
+```{r}
+library(broom)
+library(PNWColors)
+```
+
 ## 1. Is medical story related to cardiac events events?
 
 ### 1.1 Introduction
@@ -13,7 +18,7 @@ Stress echocardiography is used to detect coronary artery disease and to estimat
 
 Before the test, each patient"s medical history was recorded: **hypertension**, **diabetes**, **smoking**, **prior heart attack**, **prior angioplasty** and **prior bypass surgery**. Established heart disease and cardiovascular risk factors are plausibly linked to more future events.
 
-So, firstly, it is sensible to ask oneself, is a patient"s prior history associated with having a cardiac event within one year of the stress test?
+So, firstly, it is sensible to ask oneself, is a patient's prior history associated with having a cardiac event within one year of the stress test?
 
 We expect a higher event rate in patients with a history of given variable. We first compare event rates for each history factor, then summarise the history in a burden score, and last use logistic regression to check whether the pattern holds after accounting for age and gender. The data are observational, so we can describe associations but not causes.
 
@@ -29,7 +34,7 @@ medical_h_data <- stressEcho |>
 head(medical_h_data)
 ```
 
-Also, burden score variable is being created. It will consist on a score given to each patient depending on the presence/absence of the proposed events on their story (Scores go from 0 to 5). Smoking history is ignored as it has 3 possible values.
+Also, burden score variable is being created. It will consist on a score given to each patient depending on the presence/absence of the proposed events on their story (Scores go from 0 to 6). Smoking history is divided in three categories: `non-smokers`, `moderate` and `heavy`. For the purpose of our analysis, we are simplifying to `non-smokers` and `smokers`.
 
 ```{r}
 #convert yes/no to 1/0 for summing up the number of patients with certain history
@@ -45,6 +50,9 @@ medical_h_data <- medical_h_data |>
                                      AngioplastyHistory == "no" ~ 0),
       BypassSurgeryHistory = case_when(BypassSurgeryHistory == "yes" ~ 1,
                                        BypassSurgeryHistory == "no" ~ 0),
+      SmokingHistory = case_when(SmokingHistory == "non-smoker" ~ 0,
+                                 SmokingHistory == "heavy" ~ 1,
+                                 SmokingHistory == "moderate" ~ 1),
       AnyEvent = case_when(AnyEvent == "yes" ~ 1,
                                        AnyEvent == "no" ~ 0),
     HistoryBurden = HypertensionHistory + DiabetesHistory + AngioplastyHistory + BypassSurgeryHistory + MyocardialInfarctionHistory
@@ -62,10 +70,10 @@ In the following code, only the essential columns are chosen, data is pivoted lo
 ```{r}
 medical_h_long_1 <- medical_h_data |>
   select(
-    c(HypertensionHistory, DiabetesHistory, AngioplastyHistory, BypassSurgeryHistory, MyocardialInfarctionHistory, AnyEvent)
+    c(HypertensionHistory, DiabetesHistory, AngioplastyHistory, BypassSurgeryHistory, MyocardialInfarctionHistory, SmokingHistory, AnyEvent)
   ) |> 
   pivot_longer(
-    cols = c(HypertensionHistory, DiabetesHistory, AngioplastyHistory, BypassSurgeryHistory, MyocardialInfarctionHistory),
+    cols = c(HypertensionHistory, DiabetesHistory, AngioplastyHistory, BypassSurgeryHistory, MyocardialInfarctionHistory, SmokingHistory),
     names_to = "History",
     values_to = "Levels"
   ) |> 
@@ -83,7 +91,7 @@ medical_h_long_1 <- medical_h_data |>
     )
   )
 
-view(medical_h_long)
+view(medical_h_long_1)
 ```
 
 ```{r}
@@ -92,22 +100,39 @@ overall <- medical_h_data |>
     mean(AnyEvent) * 100
   )
 
-ggplot(data=medical_h_long, aes(x = History, y = event_rate, fill = Levels)) +
+ggplot(data=medical_h_long_1, aes(x = History, y = event_rate, fill = Levels)) +
   geom_col(position = "dodge") +
-  geom_hline(yintercept = as.numeric(overall), linetype = "dashed")
+  geom_hline(yintercept = as.numeric(overall), linetype = "dashed") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 25,
+                                   hjust = 1),
+        plot.title = element_text(hjust = 0.5)) +
+  labs(x = "Medical history",
+       y = "Event rate (%)", 
+       title = "Events rates in patients with previous medical history") +
+  scale_fill_manual(values = pnw_palette(name = "Starfish",
+                                         n = 2))+
+  scale_x_discrete(labels = c("AngioplastyHistory" = "Angioplasty",
+                              "BypassSurgeryHistory" = "Bypass surgery",
+                              "DiabetesHistory" = "Diabetes",
+                              "HypertensionHistory" = "Hypertension", 
+                              "MyocardialInfarctionHistory" = "Myocardical infraction",
+                   "SmokingHistory" = "Smoking"))
   
 ```
 
 #### 1.3.2 Does more history burden increase the probability of an event occurring?
 
+A new subset is created. This time, `HistoryBurden` variable is added to know if the accumulation of events along the history of the patients increases the event rate. If more than 4 events happen, we accumulate them in an united variable `4+` since not many patients have suffered that much events.
+
 ```{r}
 medical_h_long_2 <- medical_h_data |>
   select(
-    c(HistoryBurden, HypertensionHistory, DiabetesHistory, AngioplastyHistory, BypassSurgeryHistory, MyocardialInfarctionHistory, AnyEvent)
+    c(HistoryBurden, HypertensionHistory, DiabetesHistory, AngioplastyHistory, BypassSurgeryHistory, MyocardialInfarctionHistory, SmokingHistory, AnyEvent)
   ) |> 
   mutate(
-    HistoryBurden = ifelse(HistoryBurden >= 3,
-                           "3+",
+    HistoryBurden = ifelse(HistoryBurden >= 4,
+                           "4+",
                            as.character(HistoryBurden))
   ) |> 
   group_by(HistoryBurden) |> 
@@ -130,21 +155,56 @@ overall <- medical_h_data |>
   )
 
 ggplot(data=medical_h_long_2, aes(x = HistoryBurden, y = event_rate)) +
-  geom_col(position = "dodge") +
-  geom_hline(yintercept = as.numeric(overall), linetype = "dashed")
+  geom_col(position = "dodge", fill=pnw_palette(name = "Starfish", n=1)) +
+  geom_hline(yintercept = as.numeric(overall), linetype = "dashed") +
+  theme_minimal() +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  labs(x="History burden",
+       y="Event rate (%)",
+       title = "Event rates in patients with accumulative history")
 ```
 
 #### 1.3.3 Which variable has more effect on the occurrence of any cardiac event?
+
+Finally, a regression model is trained with our data to find out which out of all the variables chosen have a bigger effect on the occurrence of a cardiac event. These findings are presented in a forest plot as well as a data table.
 
 ```{r}
 library(broom)
 
 model <- medical_h_data |> 
-  glm(formula = AnyEvent ~ age + gender + HypertensionHistory + DiabetesHistory + AngioplastyHistory + BypassSurgeryHistory + MyocardialInfarctionHistory,
+  glm(formula = AnyEvent ~ age + gender + HypertensionHistory + DiabetesHistory + AngioplastyHistory + BypassSurgeryHistory + MyocardialInfarctionHistory + SmokingHistory,
       family = binomial, 
       data=_)
 
-model |>
-  tidy(conf.int = TRUE, 
-       exponentiate = TRUE)
+forest_plot_data <- model |>
+  tidy(conf.int = TRUE,
+       exponentiate = TRUE) |> 
+  filter(term != "(Intercept)")
+
+ggplot(forest_plot_data, mapping = aes(x = estimate,
+                       y = fct_reorder(term,
+                                       estimate))) +
+        geom_vline(xintercept = 1,
+                   linetype = "dashed") +
+        geom_errorbar(mapping = aes(xmin = conf.low,
+                                    xmax = conf.high),
+                      width = 0.2) +
+        geom_pointrange(mapping = aes(xmin = conf.low,
+                                      xmax = conf.high)) +
+        scale_x_log10() +
+        theme_minimal() +
+        theme(plot.title = element_text(hjust = 0.5)) +
+        scale_y_discrete(labels = c("AngioplastyHistory" = "Angioplasty",
+                              "BypassSurgeryHistory" = "Bypass surgery",
+                              "DiabetesHistory" = "Diabetes",
+                              "HypertensionHistory" = "Hypertension", 
+                              "MyocardialInfarctionHistory" = "Myocardical infraction",
+                   "SmokingHistory" = "Smoking",
+                   "gendermale" = "Male gender",
+                   "age" = "Age"))+
+  labs(x = "Odds ratio (95% CI, log scale)",
+       y=NULL, 
+       title = "Adjusted odds ratios for a cardiac event within one year")
+
+view(forest_plot_data)
 ```
