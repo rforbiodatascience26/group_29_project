@@ -1,0 +1,43 @@
+---
+title: "4_heart_rate_response"
+format: html
+---
+
+We load the necessary libraries
+
+```{r}
+library(tidyverse)
+library(ggplot2)
+library(here)
+
+stressEcho <- read_csv(here("data", "_raw", "stressEcho.csv"), na = c("N/A"))
+
+head(stressEcho)
+```
+
+1. Prototype: maxhr vs age (+ line 220 - age)
+
+```{r}
+ggplot((data = stressEcho),
+  mapping = aes(x = age, y = maxhr))+
+  geom_abline(slope = -1, intercept = 220)+
+  geom_point()
+```
+
+2. Summaries by gender, diabetes, hypertension
+
+```{r}
+
+stressEcho |> 
+  group_by(gender) |> 
+  summarise(n = n(),
+            mean_maxhr = mean(maxhr, na.rm = TRUE),
+            sd_maxhr = sd(maxhr, na.rm = TRUE),
+            mean_pctMphr = mean(pctMphr, na.rm = TRUE),
+            sd_Mphr = sd(pctMphr, na.rm = TRUE))
+           
+```
+
+3. Plot: maxhr vs age by gender, fitted lines
+4. Linear regression: maxhr ~ age + gender + hxofDM
+5. Target heart rate vs event rate
